@@ -49,6 +49,7 @@
                       placement="right-start">
                 <p>{{ topic.topic_title }}</p>
               </Poptip>
+
               <div class='topic-content'
                    @click='getTopicDetail(topic.topic_id)'>
 
