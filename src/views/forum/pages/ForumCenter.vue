@@ -1,3 +1,4 @@
+tdh
 <template>
   <div id='app'>
     <div id='forum-detail'>
@@ -49,7 +50,6 @@
                       placement="right-start">
                 <p>{{ topic.topic_title }}</p>
               </Poptip>
-
               <div class='topic-content'
                    @click='getTopicDetail(topic.topic_id)'>
 
