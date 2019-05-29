@@ -1,0 +1,22 @@
+@font-face{
+  font-family: 'pingfang';
+  src: url('../fonts/pingfang.eot'); 
+  src: url('../fonts/pingfang.eot?#iefix') format('embedded-opentype'),
+      url('../fonts/pingfang.woff') format('woff'), 
+      url('../fonts/pingfang.ttf')  format('truetype'), 
+      url('../fonts/pingfang.svg#pingfang') format('svg'); 
+}
+@font-face{
+  font-family: 'pingfang-thick';
+  src: url('../fonts/pingfang-thick.eot'); 
+  src: url('../fonts/pingfang-thick.eot?#iefix') format('embedded-opentype'), 
+      url('../fonts/pingfang-thick.woff') format('woff'), 
+      url('../fonts/pingfang-thick.ttf')  format('truetype'), 
+      url('../fonts/pingfang-thick.svg#pingfang-thick') format('svg'); 
+}
+body,div,span,header,footer,nav,section,aside,article,ul,dl,dt,dd,li,a,p,h1,h2,h3,h4,h5,h6,i,b,em,textarea,button,input,select,figure,figcaption {
+  font-family: 'pingfang', PingFangSC-Light, helvetica, 'Heiti SC';
+}
+.pf_thick{
+  font-family: 'pingfang-thick';
+}
