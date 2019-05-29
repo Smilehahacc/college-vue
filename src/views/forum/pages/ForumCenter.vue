@@ -1,4 +1,3 @@
-tdhfefw
 <template>
   <div id='app'>
     <div id='forum-detail'>
