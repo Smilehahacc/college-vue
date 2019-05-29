@@ -1,6 +1,32 @@
 <template>
   <div id='app'>
     <div id='forum-detail'>
+
+      <!-- 显示详细用户信息的对话框-->
+      <Modal class='modal-user'
+             v-model="isShowInforPanel"
+             draggable
+             scrollable
+             title="用户信息">
+        <div style='height:auto;margin-bottom:20px'>
+          <div class='modal-detail'>
+            <img :src="isShowInforPanel?require('@/assets/img/'+userInfor.infor_portrait):require('@/assets/img/blank.png')">
+            <a>{{ userInfor.infor_name }}</a>
+            <Button class='follow-button'
+                    :type="isFollow?'warning':'primary'"
+                    :style="{display:isLogin?'':'none'}"
+                    @click='followUser(userInfor.user_id)'>{{ checkFollow() }}</Button>
+          </div>
+          <div style='height:auto;width:100%;margin-bottom:40px'>
+            <p>粉丝 xxx</p>
+            <p>关注 xxx</p>
+            <p>主题数 {{ userInfor.infor_topic_num }}</p>
+            <p>个性签名: {{ userInfor.infor_autograph }}</p>
+          </div>
+
+        </div>
+      </Modal>
+
       <!-- 页面头部，左边轮播图用来展示一些校园活动，右边是欢迎图片 -->
       <div class='head'>
         <div class='head-left'>
@@ -52,7 +78,7 @@
               <div class='topic-content'
                    @click='getTopicDetail(topic.topic_id)'>
 
-                <img :src="checkImg(topic.topic_img)?require('@/assets/img/'+topic.topic_img):require('@/assets/img/portrait.png')"
+                <img :src="checkImg(topic.topic_img)?require('@/assets/img/'+topic.topic_img):require('@/assets/img/blank.png')"
                      class='topic-img'
                      :style="{display:checkImg(topic.topic_img)?'':'none'}">
                 <div class='content-text'>{{ topic.topic_content }}</div>
@@ -62,7 +88,7 @@
                 <div class='infor-detail'>
                   <Icon type="ios-person-outline"
                         class='infor-icon' />
-                  <a>{{ topic.user_name }}</a>
+                  <a @click='showUserInfor(topic.user_id,topic.user_name)'>{{ topic.user_name }}</a>
                 </div>
                 <div>
                   <Icon type="ios-time-outline"
@@ -94,7 +120,8 @@
                  :style="{display:isLogin?'':'none'}">
               <!-- 关注人的主题信息，包括用户名头像发送时间 -->
               <div class='follow-infor'>
-                <img :src="require('@/assets/img/'+topic.user_portrait)">
+                <img :src="require('@/assets/img/'+topic.user_portrait)"
+                     @click='showUserInfor(topic.user_id,topic.user_name)'>
                 <!-- 名字和发送时间 -->
                 <div class='follow-infor-detail'>
                   <a class='detail-username'>{{ topic.user_name }}</a>
@@ -109,7 +136,7 @@
               </Poptip>
               <div class='topic-content'
                    @click='getTopicDetail(topic.topic_id)'>
-
+                <!-- 主题图片 -->
                 <img :src="checkImg(topic.topic_img)?require('@/assets/img/'+topic.topic_img):require('@/assets/img/portrait.png')"
                      class='topic-img'
                      :style="{display:checkImg(topic.topic_img)?'':'none'}">
@@ -142,7 +169,9 @@
               <!-- 快捷回复栏 -->
               <div class='quick-reply'
                    :style="{display:(replySelected === index)?'':'none'}">
-                <input v-model="quickReply" type="text" placeholder='写下你想说的吧～'>
+                <input v-model="quickReply"
+                       type="text"
+                       placeholder='写下你想说的吧～'>
                 <Button class='reply-button'
                         type="primary"
                         @click='replyPublish(topic.topic_id)'>
@@ -226,6 +255,7 @@
 </template>
 
 <script>
+import { isFunction } from 'util'
 // 固定写法，参数的赋值
 export default {
   name: 'forumCenter',
@@ -243,9 +273,17 @@ export default {
       userName: '',
       replySelected: -1,
       quickReply: '',
+      isShowInforPanel: false,
+      isFollow: false,
       collegeUser: [],
       allTopic: [], // 所有的主题
-      followTopic: [] // 关注的人的主题
+      followTopic: [], // 关注的人的主题
+      userInfor: [{
+        infor_portrait: 'portrait.png',
+        infor_name: '',
+        infor_topic_num: '',
+        infor_autograph: ''
+      }] // 用户详细信息
       // followTopic: [{
       //   topic_id: '1',
       //   college_id: 0,
@@ -273,6 +311,14 @@ export default {
         this.syncUserPage()
       }
       console.log('当前登录状态为' + this.isLogin)
+      setTimeout(() => {
+        // 更新信息，跳转页面
+        this.$store.state.isLogin = true
+        this.$store.state.userId = this.userId
+        this.$store.state.userName = this.name
+        this.setCookie('isLogin', true, 7)
+        this.$router.push('/forumCenter')
+      }, 500)
     },
     // 右侧常用功能的控制
     commonlyMenu (name) {
@@ -314,6 +360,71 @@ export default {
         return true
       }
     },
+    // 点击用户名后可查看详情并关注
+    showUserInfor (userId, userName) {
+      this.isShowInforPanel = true
+      // 获取基本信息
+      this.$axios.post('/api/findByCondition', {
+        name: userName
+      }).then(data => {
+        this.userInfor = data.data
+      })
+      // 判断是否已经关注
+      if (this.isLogin) {
+        this.$axios.post('/api/findRelationById', {
+          userId: userId,
+          fansId: this.userId
+        }).then(response => {
+          if (response.data === 'SUCCESS') {
+            this.isFollow = true
+          } else {
+            this.isFollow = false
+          }
+        })
+      }
+    },
+    // 检查是否关注，修改按钮样式
+    checkFollow () {
+      if (this.isFollow) {
+        return '取消关注'
+      } else {
+        return '关注'
+      }
+    },
+    // 点击按钮后，关注或取消关注
+    followUser (userId) {
+      if (!this.isFollow) { // 关注
+        this.$axios.post('/api/newFans', {
+          userId: userId,
+          fansId: this.userId
+        }).then(response => {
+          if (response.data === 'SUCCESS') {
+            this.$Message.success('关注成功！')
+            this.isFollow = true
+          } else {
+            this.$Message.error('关注失败！')
+          }
+        }).catch(error => {
+          console.log(error)
+          this.$Message.error('请求失败！' + error.status + ',' + error.statusText)
+        })
+      } else { // 取消关注
+        this.$axios.post('/api/deleteFansById', {
+          userId: userId,
+          fansId: this.userId
+        }).then(response => {
+          if (response.data === 'SUCCESS') {
+            this.$Message.success('取消关注成功！')
+            this.isFollow = false
+          } else {
+            this.$Message.error('取消关注失败！')
+          }
+        }).catch(error => {
+          console.log(error)
+          this.$Message.error('请求失败！' + error.status + ',' + error.statusText)
+        })
+      }
+    },
     // 跳转页面，查看详情
     getTopicDetail (data) {
       this.$Message.success('这里是点击之后查看主题id' + data)
@@ -344,7 +455,7 @@ export default {
       this.$set(this.followTopic[index], 'topic_praise', num + 1)
       this.$Message.success('已经点赞咯')
     },
-    //
+    // 点击展开快捷回复栏
     replyClick (index) {
       if (this.replySelected === index) {
         this.replySelected = -1
@@ -666,11 +777,52 @@ export default {
   float: left;
   height: 30px;
   width: 80%;
-  text-indent:8px;
+  text-indent: 8px;
 }
 
 .reply-button {
   float: left;
   margin-left: 10px;
+}
+
+.modal-user {
+  height: auto;
+  width: auto;
+}
+
+.modal-detail {
+  height: 100px;
+  width: 100%;
+}
+/* 用户头像 */
+.modal-detail img {
+  float: left;
+  width: 80px;
+  height: 80px;
+}
+
+.modal-detail a {
+  float: left;
+  height: auto;
+  width: 80%;
+  margin-left: 14px;
+  text-decoration: none;
+  color: #17233d;
+  font-size: 20px;
+}
+
+.follow-button {
+  position: relative;
+  float: left;
+  margin-left: 14px;
+  margin-top: 20px;
+}
+
+.modal-user p {
+  float: left;
+  width: auto;
+  height: auto;
+  font-size: 16px;
+  margin: 0 14px 10px 0;
 }
 </style>

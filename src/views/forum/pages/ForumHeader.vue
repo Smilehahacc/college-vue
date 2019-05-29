@@ -2,7 +2,7 @@
   <div id='app'>
     <BackTop></BackTop>
     <div class='head'>
-      <a class='head-title'>校园</a>
+      <a class='head-title' @click='refresh'>校园</a>
       <a class='head-menu'>首页</a>
       <a class='head-menu'>动态</a>
       <a class='head-menu'>发现</a>
@@ -179,6 +179,10 @@ export default {
   },
   // 一些页面交互相关方法
   methods: {
+    // 刷新页面
+    refresh () {
+      this.reload()
+    },
     // 消息
     information () {
       this.drawerInformation = true
@@ -269,6 +273,7 @@ export default {
     },
     // 同步状态，读取用户信息
     syncUser () {
+      // 获取基本信息
       this.$axios.post('/api/findByCondition', {
         name: this.userName
       }).then(data => {
@@ -277,12 +282,14 @@ export default {
         // 更新头像
         this.portraitSrc = require('@/assets/img/' + this.userInfor.infor_portrait)
       })
+      // 获取粉丝数量
       this.$axios.get('/api/getFansNumByCookie', {
         name: this.userName
       }).then(data => {
         this.fansNum = data.data
         console.log('获取粉丝数：' + this.fansNum)
       })
+      // 获取关注数量
       this.$axios.get('/api/getUserNumByCookie', {
         name: this.userName
       }).then(data => {
