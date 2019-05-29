@@ -90,13 +90,15 @@
             <!-- 关注的用户-->
             <div class='recommend-topic'
                  v-for='(topic,index) in followTopic'
-                 :key='index' :style="{display:isLogin?'':'none'}">
+                 :key='index'
+                 :style="{display:isLogin?'':'none'}">
               <!-- 关注人的主题信息，包括用户名头像发送时间 -->
               <div class='follow-infor'>
                 <img :src="require('@/assets/img/'+topic.user_portrait)">
+                <!-- 名字和发送时间 -->
                 <div class='follow-infor-detail'>
-                  <a>{{ topic.user_name }}</a>
-                  <a>{{ formartDate(topic.topic_date) }}</a>
+                  <a class='detail-username'>{{ topic.user_name }}</a>
+                  <a class='detail-topicdate'>{{ formartDate(topic.topic_date) }}</a>
                 </div>
               </div>
               <Poptip trigger="hover"
@@ -116,10 +118,36 @@
               <!-- 关注人主题相关操作按钮，点赞回复分享收藏，显示在最后一排 -->
               <div class='topic-infor'>
                 <div class='infor-detail'>
-                  <Icon type="ios-person-outline"
-                        class='infor-icon' />
-                  <a>{{ topic.user_name }}</a>
+                  <Icon type="md-heart"
+                        class='infor-icon1' />
+                  <a>{{ topic.topic_praise }}</a>
+                  <a @click='praiseClick(index,topic.topic_praise)'>点赞</a>
                 </div>
+                <div class='infor-detail'>
+                  <Icon type="ios-chatbubbles"
+                        class='infor-icon1' />
+                  <a @click='replyClick(index)'>回复</a>
+                </div>
+                <div class='infor-detail'>
+                  <Icon type="ios-share-alt"
+                        class='infor-icon1' />
+                  <a>分享</a>
+                </div>
+                <div class='infor-detail'>
+                  <Icon type="md-star"
+                        class='infor-icon1' />
+                  <a>收藏</a>
+                </div>
+              </div>
+              <!-- 快捷回复栏 -->
+              <div class='quick-reply'
+                   :style="{display:(replySelected === index)?'':'none'}">
+                <input v-model="quickReply" type="text" placeholder='写下你想说的吧～'>
+                <Button class='reply-button'
+                        type="primary"
+                        @click='replyPublish(topic.topic_id)'>
+                  发表
+                </Button>
               </div>
               <Divider />
             </div>
@@ -213,32 +241,34 @@ export default {
       isLogin: false,
       userId: '',
       userName: '',
+      replySelected: -1,
+      quickReply: '',
       collegeUser: [],
       allTopic: [], // 所有的主题
-      // followTopic: [], // 关注的人的主题
-      followTopic: [{
-        topic_id: '1',
-        college_id: 0,
-        college_name: '厦门理工学院',
-        user_id: 1,
-        user_name: 'lynn',
-        user_portrait: 'portrait2.png',
-        topic_sort: 0,
-        topic_date: '1555320001',
-        topic_title: '这里是测试主题标题',
-        topic_content: '这里是测试主题内容',
-        topic_praise: 2,
-        topic_img: 'portrait.png'
-      }]
+      followTopic: [] // 关注的人的主题
+      // followTopic: [{
+      //   topic_id: '1',
+      //   college_id: 0,
+      //   college_name: '厦门理工学院',
+      //   user_id: 1,
+      //   user_name: '哥哥我可以',
+      //   user_portrait: 'portrait2.png',
+      //   topic_sort: 0,
+      //   topic_date: '1555320001',
+      //   topic_title: '这里是测试主题标题',
+      //   topic_content: '这里是测试主题内容这里是测题内容这里是测内容这里试测试主题内容这里是测试主题内容',
+      //   topic_praise: 2,
+      //   topic_img: 'portrait.png'
+      // }]
     }
   },
   // 一些页面交互相关方法
   methods: {
-    // 从Vuex获取登录状态
+    // 从Cookie获取登录状态
     getLoginState () {
-      this.isLogin = this.$store.state.isLogin
-      this.userId = this.$store.state.userId
-      this.userName = this.$store.state.userName
+      this.isLogin = this.getCookie('isLogin')
+      this.userId = this.getCookie('userId')
+      this.userName = this.getCookie('userName')
       if (this.isLogin) {
         this.syncUserPage()
       }
@@ -292,7 +322,7 @@ export default {
       if (sort === 1) {
         return '与你一起'
       } else if (sort === 2) {
-         return '乐享校园'
+        return '乐享校园'
       } else if (sort === 3) {
         return '校园帮帮'
       } else if (sort === 4) {
@@ -309,6 +339,43 @@ export default {
         return '未知分类'
       }
     },
+    // 点击点赞标签
+    praiseClick (index, num) {
+      this.$set(this.followTopic[index], 'topic_praise', num + 1)
+      this.$Message.success('已经点赞咯')
+    },
+    //
+    replyClick (index) {
+      if (this.replySelected === index) {
+        this.replySelected = -1
+      } else {
+        this.replySelected = index
+      }
+    },
+    // 发送快捷回复
+    replyPublish (topicId) {
+      var t = new Date().getTime()
+      t = parseInt(t / 1000)
+      this.$axios.post('/api/newReply', {
+        topicId: topicId,
+        userId: this.userId,
+        userName: this.userName,
+        replyContent: this.quickReply,
+        replyDate: t,
+        replyImage: ''
+      }).then(response => {
+        console.log('提交快捷回复')
+        if (response.data === 'SUCCESS') {
+          this.$Message.success('回复成功！')
+          this.replySelected = -1
+        } else {
+          this.$Message.error('抱歉，回复失败！')
+        }
+      }).catch(error => {
+        console.log(error)
+        this.$Message.error('请求失败！' + error.status + ',' + error.statusText)
+      })
+    },
     // 点击选择进入某个校园
     collegeChoice (index, id) {
       this.$Message.success('点击的校园为：' + id)
@@ -316,6 +383,21 @@ export default {
     // 点击关注更多校园
     collegeMore () {
       this.$Message.success('跳转到更多校园页面')
+    },
+    // 获取cookie
+    getCookie (cname) {
+      var name = cname + '='
+      var ca = document.cookie.split(';')
+      console.log('正在获取cookie...')
+      for (var i = 0; i < ca.length; i++) {
+        var c = ca[i]
+        console.log(c)
+        while (c.charAt(0) === ' ') c = c.substring(1)
+        if (c.indexOf(name) !== -1) {
+          return c.substring(name.length, c.length)
+        }
+      }
+      return ''
     },
     // 发送请求，更新用户相关页面信息
     syncUserPage () {
@@ -327,6 +409,15 @@ export default {
         console.log('获取关注的校园')
         if (data.data !== null) {
           this.collegeUser = data.data
+        }
+      })
+      // 请求关注的用户主题
+      this.$axios.post('/api/findFollowTopicByUserId', {
+        userId: this.userId
+      }).then(data => {
+        console.log('获取关注的用户主题')
+        if (data.data !== null) {
+          this.followTopic = data.data
         }
       })
     },
@@ -476,16 +567,17 @@ export default {
 
 .topic-content {
   font-size: 16px;
-  color: #515a6e;
+  color: #17233d;
   margin-top: 10px;
-  font-weight: 600;
 }
 
 .topic-img {
   float: left;
-  height: 100%;
-  width: 200px;
-  margin-right: 10px;
+  height: auto;
+  width: 118px;
+  /* height: 140px;
+  width: auto; */
+  margin-right: 15px;
 }
 
 .content-text {
@@ -502,6 +594,7 @@ export default {
 .infor-detail {
   float: left;
   width: auto;
+  margin-right: 16px;
 }
 
 .infor-icon {
@@ -515,29 +608,69 @@ export default {
   width: auto;
   color: #515a6e;
   text-decoration: none;
-  margin-right: 10px;
-  margin-left: 4px;
+  margin: 0 0px 0 4px;
 }
 
 .follow-infor {
   width: 100%;
   height: 60px;
-  background-color: red;
 }
 /* 用户头像 */
 .follow-infor img {
   float: left;
   width: 50px;
   height: 50px;
+  border-radius: 25px;
+  border: solid #ffffff 1px;
 }
 
 .follow-infor-detail {
   float: left;
-
+  margin: 0 0 0 10px;
+  height: 100%;
 }
 
-.follow-infor-detail a{
+.follow-infor-detail a {
+  float: left;
+  text-decoration: none;
+  height: 50%;
+  width: 100%;
   color: #515a6e;
   text-decoration: none;
+}
+
+.detail-username {
+  font-size: 16px;
+  font-weight: bold;
+}
+
+.detail-topicdate {
+  font-size: 14px;
+}
+
+.infor-icon1 {
+  float: left;
+  color: #515a6e;
+  height: 100%;
+  width: auto;
+  margin: 4px 6px 0 0;
+}
+/* 快捷回复栏 */
+.quick-reply {
+  float: left;
+  width: 100%;
+  margin: 0 0 20px 0;
+}
+
+.quick-reply input {
+  float: left;
+  height: 30px;
+  width: 80%;
+  text-indent:8px;
+}
+
+.reply-button {
+  float: left;
+  margin-left: 10px;
 }
 </style>

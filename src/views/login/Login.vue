@@ -145,6 +145,7 @@ export default {
         this.$store.state.isLogin = true
         this.$store.state.userId = this.userId
         this.$store.state.userName = this.name
+        this.setCookie('isLogin', true, 7)
         this.$router.push('/forumCenter')
       }, 500)
     },

@@ -257,9 +257,9 @@ export default {
     },
     // 从Vuex更新登录状态
     getLoginState () {
-      this.isLogin = this.$store.state.isLogin
-      this.userId = this.$store.state.userId
-      this.userName = this.$store.state.userName
+      this.isLogin = this.getCookie('isLogin')
+      this.userId = this.getCookie('userId')
+      this.userName = this.getCookie('userName')
     },
     // 退出登录后更新登录状态
     setLoginState () {
@@ -316,6 +316,7 @@ export default {
     },
     // 清除登录cookie
     clearCookie () {
+      this.setCookie('isLogin', '', -1)
       this.setCookie('userId', '', -1)
       this.setCookie('userName', '', -1)
     }
