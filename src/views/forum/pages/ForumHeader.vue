@@ -12,7 +12,8 @@
                v-bind:placeholder='searchTitle'
                v-model='searchText' />
         <Button class='search-button'
-                type="primary">搜索</Button>
+                type="primary"
+                @click='search'>搜索</Button>
       </div>
 
       <div class='user-bar'>
@@ -198,6 +199,23 @@ export default {
     // 用户设置
     setting () {
       this.drawerSetting = true
+    },
+    // 查找校园
+    search () {
+      // 根据校园名查询校园
+      this.$axios.post('/api/findCollegeIdByName', {
+        collegeName: this.searchText
+      }).then(data => {
+        console.log('获取校园id进行搜索和页面跳转')
+        // 查询到结果则跳转，否则提示没有结果
+        if (data.data !== -1) {
+          this.$Message.success('搜索成功，正在进入校园...')
+          this.$store.commit('setCollegeId', data.data)
+          this.$router.push('/collegeDetail')
+        } else {
+          this.$Message.error('抱歉，没有搜索到该校园！')
+        }
+      })
     },
     // 显示左侧个人信息栏的信息修改页面，更新数据
     modifyShow () {

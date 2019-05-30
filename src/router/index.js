@@ -3,6 +3,8 @@ import Router from 'vue-router'
 import Login from '@/views/login/Login'
 import Index from '@/views/forum/index'
 import ForumCenter from '@/views/forum/pages/ForumCenter'
+import CollegeDetail from '@/views/forum/pages/CollegeDetail'
+import TopicDetail from '@/views/forum/pages/TopicDetail'
 
 Vue.use(Router)
 
@@ -31,8 +33,14 @@ export default new Router({
         redirect: '/forumCenter',
         children: [
         {
-            path: '/forumCenter',
-            component: ForumCenter
+          path: '/forumCenter',
+          component: ForumCenter
+        }, {
+          path: '/collegeDetail',
+          component: CollegeDetail
+        }, {
+          path: '/topicDetail',
+          component: TopicDetail
         }]
     }
   ]

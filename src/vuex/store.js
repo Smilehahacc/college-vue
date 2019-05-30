@@ -8,7 +8,26 @@ const store = new Vuex.Store({
   state: {
     isLogin: false,
     userName: '',
-    userId: ''
+    userId: '',
+    collegeId: '',
+    topicId: ''
+  },
+  mutations: {
+    setCollegeId (state, collegeId) {
+        state.collegeId = collegeId
+        sessionStorage.setItem('collegeId', collegeId)
+    },
+    setTopicId (state, topicId) {
+      state.topicId = topicId
+      sessionStorage.setItem('topicId', topicId)
+    }
+  },
+  actions: {
+
+  },
+  getters: {
+    collegeId: (state) => sessionStorage.getItem('collegeId'),
+    topicId: (state) => sessionStorage.getItem('topicId')
   }
 })
 

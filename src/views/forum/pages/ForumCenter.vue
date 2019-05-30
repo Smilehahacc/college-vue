@@ -112,74 +112,8 @@
                 点击登录，享受精彩校园
               </Button>
             </router-link>
-
-            <!-- 关注的用户-->
-            <div class='recommend-topic'
-                 v-for='(topic,index) in followTopic'
-                 :key='index'
-                 :style="{display:isLogin?'':'none'}">
-              <!-- 关注人的主题信息，包括用户名头像发送时间 -->
-              <div class='follow-infor'>
-                <img :src="require('@/assets/img/'+topic.user_portrait)"
-                     @click='showUserInfor(topic.user_id,topic.user_name)'>
-                <!-- 名字和发送时间 -->
-                <div class='follow-infor-detail'>
-                  <a class='detail-username'>{{ topic.user_name }}</a>
-                  <a class='detail-topicdate'>{{ formartDate(topic.topic_date) }}</a>
-                </div>
-              </div>
-              <Poptip trigger="hover"
-                      :title='topic.college_name'
-                      :content='getTopicSort(topic.topic_sort)'
-                      placement="right-start">
-                <p>{{ topic.topic_title }}</p>
-              </Poptip>
-              <div class='topic-content'
-                   @click='getTopicDetail(topic.topic_id)'>
-                <!-- 主题图片 -->
-                <img :src="checkImg(topic.topic_img)?require('@/assets/img/'+topic.topic_img):require('@/assets/img/portrait.png')"
-                     class='topic-img'
-                     :style="{display:checkImg(topic.topic_img)?'':'none'}">
-                <div class='content-text'>{{ topic.topic_content }}</div>
-              </div>
-              <!-- 关注人主题相关操作按钮，点赞回复分享收藏，显示在最后一排 -->
-              <div class='topic-infor'>
-                <div class='infor-detail'>
-                  <Icon type="md-heart"
-                        class='infor-icon1' />
-                  <a>{{ topic.topic_praise }}</a>
-                  <a @click='praiseClick(index,topic.topic_praise)'>点赞</a>
-                </div>
-                <div class='infor-detail'>
-                  <Icon type="ios-chatbubbles"
-                        class='infor-icon1' />
-                  <a @click='replyClick(index)'>回复</a>
-                </div>
-                <div class='infor-detail'>
-                  <Icon type="ios-share-alt"
-                        class='infor-icon1' />
-                  <a>分享</a>
-                </div>
-                <div class='infor-detail'>
-                  <Icon type="md-star"
-                        class='infor-icon1' />
-                  <a>收藏</a>
-                </div>
-              </div>
-              <!-- 快捷回复栏 -->
-              <div class='quick-reply'
-                   :style="{display:(replySelected === index)?'':'none'}">
-                <input v-model="quickReply"
-                       type="text"
-                       placeholder='写下你想说的吧～'>
-                <Button class='reply-button'
-                        type="primary"
-                        @click='replyPublish(topic.topic_id)'>
-                  发表
-                </Button>
-              </div>
-              <Divider />
-            </div>
+            <!-- 将获取的主题信息传入子组件 -->
+            <user-topic v-bind:followTopic='followTopic' />
 
           </TabPane>
         </Tabs>
@@ -255,11 +189,14 @@
 </template>
 
 <script>
-import { isFunction } from 'util'
+import UserTopic from '../components/UserTopic'
 // 固定写法，参数的赋值
 export default {
   name: 'forumCenter',
   inject: ['reload'],
+  components: {
+    'user-topic': UserTopic
+  },
   data () {
     return {
       welcomeSrc: require('@/assets/img/welcome.png'),
@@ -283,21 +220,7 @@ export default {
         infor_name: '',
         infor_topic_num: '',
         infor_autograph: ''
-      }] // 用户详细信息
-      // followTopic: [{
-      //   topic_id: '1',
-      //   college_id: 0,
-      //   college_name: '厦门理工学院',
-      //   user_id: 1,
-      //   user_name: '哥哥我可以',
-      //   user_portrait: 'portrait2.png',
-      //   topic_sort: 0,
-      //   topic_date: '1555320001',
-      //   topic_title: '这里是测试主题标题',
-      //   topic_content: '这里是测试主题内容这里是测题内容这里是测内容这里试测试主题内容这里是测试主题内容',
-      //   topic_praise: 2,
-      //   topic_img: 'portrait.png'
-      // }]
+      }]
     }
   },
   // 一些页面交互相关方法
@@ -362,7 +285,6 @@ export default {
     },
     // 点击用户名后可查看详情并关注
     showUserInfor (userId, userName) {
-      this.isShowInforPanel = true
       // 获取基本信息
       this.$axios.post('/api/findByCondition', {
         name: userName
@@ -382,6 +304,8 @@ export default {
           }
         })
       }
+      // 显示对话框
+      this.isShowInforPanel = true
     },
     // 检查是否关注，修改按钮样式
     checkFollow () {
@@ -425,10 +349,7 @@ export default {
         })
       }
     },
-    // 跳转页面，查看详情
-    getTopicDetail (data) {
-      this.$Message.success('这里是点击之后查看主题id' + data)
-    },
+    // 获取校园分类名
     getTopicSort (sort) {
       if (sort === 1) {
         return '与你一起'
@@ -450,46 +371,15 @@ export default {
         return '未知分类'
       }
     },
-    // 点击点赞标签
-    praiseClick (index, num) {
-      this.$set(this.followTopic[index], 'topic_praise', num + 1)
-      this.$Message.success('已经点赞咯')
-    },
-    // 点击展开快捷回复栏
-    replyClick (index) {
-      if (this.replySelected === index) {
-        this.replySelected = -1
-      } else {
-        this.replySelected = index
-      }
-    },
-    // 发送快捷回复
-    replyPublish (topicId) {
-      var t = new Date().getTime()
-      t = parseInt(t / 1000)
-      this.$axios.post('/api/newReply', {
-        topicId: topicId,
-        userId: this.userId,
-        userName: this.userName,
-        replyContent: this.quickReply,
-        replyDate: t,
-        replyImage: ''
-      }).then(response => {
-        console.log('提交快捷回复')
-        if (response.data === 'SUCCESS') {
-          this.$Message.success('回复成功！')
-          this.replySelected = -1
-        } else {
-          this.$Message.error('抱歉，回复失败！')
-        }
-      }).catch(error => {
-        console.log(error)
-        this.$Message.error('请求失败！' + error.status + ',' + error.statusText)
-      })
-    },
     // 点击选择进入某个校园
-    collegeChoice (index, id) {
-      this.$Message.success('点击的校园为：' + id)
+    collegeChoice (index, collegeId) {
+      this.$store.commit('setCollegeId', collegeId)
+      this.$router.push('/collegeDetail')
+    },
+     // 跳转页面，查看详情
+    getTopicDetail (topicId) {
+      this.$store.commit('setTopicId', topicId)
+      this.$router.push('/topicDetail')
     },
     // 点击关注更多校园
     collegeMore () {
@@ -720,69 +610,6 @@ export default {
   color: #515a6e;
   text-decoration: none;
   margin: 0 0px 0 4px;
-}
-
-.follow-infor {
-  width: 100%;
-  height: 60px;
-}
-/* 用户头像 */
-.follow-infor img {
-  float: left;
-  width: 50px;
-  height: 50px;
-  border-radius: 25px;
-  border: solid #ffffff 1px;
-}
-
-.follow-infor-detail {
-  float: left;
-  margin: 0 0 0 10px;
-  height: 100%;
-}
-
-.follow-infor-detail a {
-  float: left;
-  text-decoration: none;
-  height: 50%;
-  width: 100%;
-  color: #515a6e;
-  text-decoration: none;
-}
-
-.detail-username {
-  font-size: 16px;
-  font-weight: bold;
-}
-
-.detail-topicdate {
-  font-size: 14px;
-}
-
-.infor-icon1 {
-  float: left;
-  color: #515a6e;
-  height: 100%;
-  width: auto;
-  margin: 4px 6px 0 0;
-}
-/* 快捷回复栏 */
-.quick-reply {
-  float: left;
-  width: 100%;
-  margin: 0 0 20px 0;
-}
-
-.quick-reply input {
-  float: left;
-  height: 30px;
-  width: 80%;
-  text-indent: 8px;
-}
-
-.reply-button {
-  float: left;
-  margin-left: 10px;
 }
 
 .modal-user {
