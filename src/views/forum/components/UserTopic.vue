@@ -47,7 +47,7 @@
         <p>{{ topic.topic_title }}</p>
       </Poptip>
       <div class='topic-content'
-           @click='getTopicDetail(topic.topic_id)'>
+           @click='getTopicDetail(topic.topic_id,topic.college_id)'>
         <!-- 主题图片 -->
         <img :src="checkImg(topic.topic_img)?require('@/assets/img/'+topic.topic_img):require('@/assets/img/blank.png')"
              class='topic-img'
@@ -269,8 +269,10 @@ export default {
       }
     },
     // 跳转页面，查看详情
-    getTopicDetail (data) {
-      this.$Message.success('这里是点击之后查看主题id' + data)
+    getTopicDetail (topicId, collegeId) {
+      this.$store.commit('setTopicId', topicId)
+      this.$store.commit('setCollegeId', collegeId)
+      this.$router.push('/topicDetail')
     },
     getTopicSort (sort) {
       if (sort === 1) {

@@ -95,6 +95,22 @@
           </div>
           <Divider />
         </div>
+
+        <!-- 页面最下方的回复框 -->
+        <div class='reply-publish'>
+          <div class='reply-publish-title'>
+            <a>发表回复</a>
+          </div>
+          <Input class='reply-input'
+                 type="textarea"
+                 :rows="4"
+                 v-model='replyText'
+                 :placeholder='replyTips' />
+          <Button class='reply-publish-button'
+                  @click="replyPublish"
+                  type="primary"
+                  :style="{disabled:isLogin?'':'disabled'}">发表</Button>
+        </div>
       </div>
       <!-- 主界面右边，显示自己关注的校园和一些常用小功能 -->
       <div class='right'>
@@ -127,6 +143,9 @@ export default {
       isShowInforPanel: false,
       isFollow: false,
       isFollowCollege: true,
+      replyText: '',
+      extraReplyText: '',
+      replyTips: '写下你的想法吧～',
       collegeInfor: [], // 校园信息
       topicInfor: [], // 主题信息
       replyList: [], // 回复列表
@@ -219,6 +238,30 @@ export default {
       }
       // 显示对话框
       this.isShowInforPanel = true
+    },
+    // 发送回复
+    replyPublish () {
+      var t = new Date().getTime()
+      t = parseInt(t / 1000)
+      this.$axios.post('/api/newReply', {
+        topicId: this.topicId,
+        userId: this.userId,
+        userName: this.userName,
+        replyContent: this.replyText,
+        replyDate: t,
+        replyImage: ''
+      }).then(response => {
+        console.log('提交回复')
+        if (response.data === 'SUCCESS') {
+          this.$Message.success('回复成功！')
+          this.replySelected = -1
+        } else {
+          this.$Message.error('抱歉，回复失败！')
+        }
+      }).catch(error => {
+        console.log(error)
+        this.$Message.error('请求失败！' + error.status + ',' + error.statusText)
+      })
     },
     /**
      * 通过时间戳返回yyyy-MM-dd HH:mm:ss
@@ -431,7 +474,8 @@ export default {
   background: #ffffff;
 }
 /* 主题头部和用户回复整体区域样式 */
-.topic_infor, .topic-reply{
+.topic_infor,
+.topic-reply {
   width: 100%;
   min-height: 100px;
   height: auto;
@@ -442,7 +486,8 @@ export default {
 .infor-head,
 .infor-head1,
 .infor-head2,
-.infor-bottom a {
+.infor-bottom a,
+.reply-publish-title a {
   text-decoration: none;
   text-align: left;
 }
@@ -538,6 +583,35 @@ export default {
   height: 80px;
   border-radius: 40px;
   border: solid #ffffff 1px;
+}
+/* 底部回复栏 */
+.reply-publish {
+  width: 100%;
+  height: auto;
+  margin-left: 20px;
+}
+.reply-publish-title {
+  float: left;
+  width: 100%;
+  margin: 10px 0 20px 0;
+  text-align: left;
+}
+
+.reply-publish-title a {
+  font-size: 16px;
+  color: #515a6e;
+}
+
+.reply-input {
+  float: left;
+  width: 90%;
+  margin: 0 auto;
+  font-size: 14px;
+
+}
+.reply-publish-button {
+  float: left;
+  margin: 20px 200px 20px 0;
 }
 /* 右边界面 */
 .right {
