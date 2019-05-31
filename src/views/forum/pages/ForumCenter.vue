@@ -113,7 +113,7 @@
               </Button>
             </router-link>
             <!-- 将获取的主题信息传入子组件 -->
-            <user-topic v-bind:followTopic='followTopic' />
+            <user-topic v-bind:followTopic='followTopic' :topicType='topicType'/>
 
           </TabPane>
         </Tabs>
@@ -150,37 +150,8 @@
         </div>
         <!-- 显示常用功能 -->
         <div class='commonly'>
-          <Menu style='width:100%;text-align:left'
-                active-name="1"
-                @on-select='commonlyMenu'>
-            <MenuGroup title="常用功能">
-              <MenuItem name='1'
-                        :style="{display:isLogin?'':'none'}">
-              <Icon type="ios-leaf" />
-              关注的人
-              </MenuItem>
-              <MenuItem name='2'
-                        :style="{display:isLogin?'':'none'}">
-              <Icon type="md-heart" />
-              我的粉丝
-              </MenuItem>
-              <MenuItem name='3'
-                        :style="{display:isLogin?'':'none'}">
-              <Icon type="ios-analytics" />
-              主题收藏
-              </MenuItem>
-              <MenuItem name='4'
-                        :style="{display:isLogin?'':'none'}">
-              <Icon type="ios-chatbubbles" />
-              评论留言
-              </MenuItem>
-              <MenuItem name='5'>
-              <Icon type="ios-people" />
-              用户反馈
-              </MenuItem>
-
-            </MenuGroup>
-          </Menu>
+          <!-- 常用功能菜单 -->
+          <commonly-menu />
         </div>
       </div>
 
@@ -190,12 +161,14 @@
 
 <script>
 import UserTopic from '../components/UserTopic'
+import CommonlyMenu from '../components/CommonlyMenu'
 // 固定写法，参数的赋值
 export default {
   name: 'forumCenter',
   inject: ['reload'],
   components: {
-    'user-topic': UserTopic
+    'user-topic': UserTopic,
+    'commonly-menu': CommonlyMenu
   },
   data () {
     return {
@@ -205,6 +178,7 @@ export default {
       actImg3: require('@/assets/img/head_back2.png'),
       actImg4: require('@/assets/img/head_back4.png'),
       autoplaySpeed: 4000,
+      topicType: 'followTopic',
       isLogin: false,
       userId: '',
       userName: '',
@@ -242,20 +216,6 @@ export default {
         this.setCookie('isLogin', true, 7)
         this.$router.push('/forumCenter')
       }, 500)
-    },
-    // 右侧常用功能的控制
-    commonlyMenu (name) {
-      if (name === '1') {
-        this.$Message.success('关注的人')
-      } else if (name === '2') {
-        this.$Message.success('我的粉丝')
-      } else if (name === '3') {
-        this.$Message.success('主题收藏')
-      } else if (name === '4') {
-        this.$Message.success('评论留言')
-      } else if (name === '5') {
-        this.$Message.success('用户反馈')
-      }
     },
     /**
      * 通过时间戳返回yyyy-MM-dd HH:mm:ss

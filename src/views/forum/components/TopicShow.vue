@@ -25,103 +25,17 @@
       </div>
     </Modal>
 
-    <!-- 用户主题展示-->
-    <div class='recommend-topic'
-         v-for='(topic,index) in followTopic'
-         :key='index'
-         :style="{display:isShow?'':'none'}">
-      <!-- 关注人的主题信息，包括用户名头像发送时间 -->
-      <div class='follow-infor'>
-        <img :src="require('@/assets/img/'+topic.user_portrait)"
-             @click='showUserInfor(topic.user_id,topic.user_name)'>
-        <!-- 名字和发送时间 -->
-        <div class='follow-infor-detail'>
-          <a class='detail-username'>{{ topic.user_name }}</a>
-          <a class='detail-topicdate'>{{ formartDate(topic.topic_date) }}</a>
-        </div>
-      </div>
-      <Poptip trigger="hover"
-              :title='topic.college_name'
-              :content='getTopicSort(topic.topic_sort)'
-              placement="right-start">
-        <p>{{ topic.topic_title }}</p>
-      </Poptip>
-      <div class='topic-content'
-           @click='getTopicDetail(topic.topic_id)'>
-        <!-- 主题图片 -->
-        <img :src="checkImg(topic.topic_img)?require('@/assets/img/'+topic.topic_img):require('@/assets/img/portrait.png')"
-             class='topic-img'
-             :style="{display:checkImg(topic.topic_img)?'':'none'}">
-        <div class='content-text'>{{ topic.topic_content }}</div>
-      </div>
-      <!-- 关注人主题相关操作按钮，点赞回复分享收藏，显示在最后一排 -->
-      <div class='topic-infor'>
-        <div class='infor-detail'>
-          <Icon type="md-heart"
-                class='infor-icon1' />
-          <a>{{ topic.topic_praise }}</a>
-          <a @click='praiseClick(index,topic.topic_praise)'>点赞</a>
-        </div>
-        <div class='infor-detail'>
-          <Icon type="ios-chatbubbles"
-                class='infor-icon1' />
-          <a @click='replyClick(index,topic.topic_id)'>回复</a>
-        </div>
-        <div class='infor-detail'>
-          <Icon type="ios-share-alt"
-                class='infor-icon1' />
-          <a @click='shareClick(index,topic.topic_id)'>分享</a>
-        </div>
-        <div class='infor-detail'>
-          <Icon type="md-star"
-                class='infor-icon1' />
-          <a @click='collectionClick(index,topic.topic_id)'>收藏</a>
-        </div>
-      </div>
-      <!-- 快捷回复栏 -->
-      <div class='quick-reply'
-           :style="{display:(replySelected === index)?'':'none'}">
-        <!-- 回复简略信息 -->
-        <div class='reply-show'
-              v-for='(reply,index) in replyList'
-              :key='index'>
-           <!-- 主题图片 -->
-          <img :src="checkImg(reply.user_portrait)?require('@/assets/img/'+reply.user_portrait):require('@/assets/img/blank.png')"
-              class='reply-user-portrait'>
-          <div class='reply-detail'>
-            <a class='reply-user'>{{ reply.user_name }}</a>
-            <a class='reply-date'>{{ formartDate(reply.reply_date) }}</a>
-          </div>
-          <a class='reply-content'>{{ reply.reply_content }}</a>
-        </div>
-        <!-- 输入栏和发送回复按钮 -->
-        <input v-model="quickReply"
-               type="text"
-               placeholder='写下你想说的吧～'>
-        <Button class='reply-button'
-                type="primary"
-                @click='replyPublish(topic.topic_id)'>
-          发表
-        </Button>
-      </div>
-      <Divider />
-    </div>
-
   </div>
 </template>
 
 <script>
 // 固定写法，参数的赋值
 export default {
-  name: 'forumCenter',
+  name: 'topicShow',
   inject: ['reload'],
   props: {
-    followTopic: {
+    userTopic: {
       type: Array,
-      require: true
-    },
-    topicType: {
-      type: String,
       require: true
     }
   },
@@ -130,38 +44,10 @@ export default {
       isLogin: false,
       userId: '',
       userName: '',
-      isShow: false,
       replySelected: -1,
       quickReply: '',
       isShowInforPanel: false,
-      isFollow: false,
-      userInfor: [], // 用户详细信息
-      replyList: [] // 用户回复信息
-      // followTopic: [{
-      //   topic_id: '1',
-      //   college_id: 0,
-      //   college_name: '厦门理工学院',
-      //   user_id: 1,
-      //   user_name: 'lynn',
-      //   user_portrait: 'portrait2.png',
-      //   topic_sort: 1,
-      //   topic_date: '1555320001',
-      //   topic_title: '这里是测试主题标题',
-      //   topic_content: '这里是测试主题内容这里是测题内容这里是测内容这里试测试主题内容这里是测试主题内容',
-      //   topic_praise: 2,
-      //   topic_img: 'portrait.png'
-      // }],
-      // replyList: [{
-      //   reply_id: 1,
-      //   topic_id: 1,
-      //   user_id: 1,
-      //   user_name: '测试小姐姐',
-      //   user_portrait: 'portrait.png',
-      //   reply_content: '这里是第一回复',
-      //   reply_date: 1559205922,
-      //   reply_praise: 2,
-      //   reply_image: 'portrait.png'
-      // }]
+      isFollow: false
     }
   },
   // 一些页面交互相关方法
@@ -171,11 +57,6 @@ export default {
       this.isLogin = this.getCookie('isLogin')
       this.userId = this.getCookie('userId')
       this.userName = this.getCookie('userName')
-      if (this.topicType === 'followTopic') {
-        this.isShow = this.isLogin
-      } else if (this.topicType === 'allTopic') {
-        this.isShow = true
-      }
     },
     /**
      * 通过时间戳返回yyyy-MM-dd HH:mm:ss
@@ -268,31 +149,6 @@ export default {
         })
       }
     },
-    // 跳转页面，查看详情
-    getTopicDetail (data) {
-      this.$Message.success('这里是点击之后查看主题id' + data)
-    },
-    getTopicSort (sort) {
-      if (sort === 1) {
-        return '与你一起'
-      } else if (sort === 2) {
-        return '乐享校园'
-      } else if (sort === 3) {
-        return '校园帮帮'
-      } else if (sort === 4) {
-        return '团团纳新'
-      } else if (sort === 5) {
-        return '学习交流'
-      } else if (sort === 6) {
-        return '你我易起'
-      } else if (sort === 7) {
-        return '寻物启事'
-      } else if (sort === 8) {
-        return '兼职招聘'
-      } else {
-        return '未知分类'
-      }
-    },
     // 点击点赞标签
     praiseClick (index, num) {
       this.$set(this.followTopic[index], 'topic_praise', num + 1)
@@ -319,7 +175,7 @@ export default {
     shareClick (index, topicId) {
       this.$Message.success('分享成功，主题id为：' + topicId)
     },
-    // 点击分享按钮
+    // 点击收藏按钮
     collectionClick (index, topicId) {
       this.$Message.success('收藏成功，主题id为：' + topicId)
     },
@@ -378,12 +234,11 @@ export default {
   background: #ffffff;
 }
 
-/* 用户的主题 */
+/* 推荐的主题 */
 .recommend-topic {
   width: auto;
   height: auto;
   text-align: left;
-  background: #ffffff;
 }
 
 .recommend-topic p {

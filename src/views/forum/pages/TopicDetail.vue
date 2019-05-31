@@ -15,18 +15,7 @@
 
       <!-- 主界面左边，展示推荐和关注（分区展示，点击可以跳转到主题详情页） -->
       <div class='left'>
-        <Tabs style='height:100%;width:100%'>
-          <!-- 推荐页面，展示当前比较火的主题 -->
-          <TabPane label="推荐"
-                   name="recommend">
 
-          </TabPane>
-
-          <!-- 关注页面，展示自己关注的人的主题（未登录帐号则显示登录按钮） -->
-          <TabPane label="关注"
-                   name="follow">
-          </TabPane>
-        </Tabs>
       </div>
       <!-- 主界面右边，显示自己关注的校园和一些常用小功能 -->
       <div class='right'>

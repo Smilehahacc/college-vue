@@ -3,7 +3,7 @@
     <BackTop></BackTop>
     <div class='head'>
       <a class='head-title' @click='refresh'>校园</a>
-      <a class='head-menu'>首页</a>
+      <a class='head-menu'  @click='refresh'>首页</a>
       <a class='head-menu'>动态</a>
       <a class='head-menu'>发现</a>
       <div class='search-bar'>
@@ -182,6 +182,7 @@ export default {
   methods: {
     // 刷新页面
     refresh () {
+      this.$router.push('/forumCenter')
       this.reload()
     },
     // 消息
@@ -209,6 +210,7 @@ export default {
         console.log('获取校园id进行搜索和页面跳转')
         // 查询到结果则跳转，否则提示没有结果
         if (data.data !== -1) {
+          this.reload()
           this.$Message.success('搜索成功，正在进入校园...')
           this.$store.commit('setCollegeId', data.data)
           this.$router.push('/collegeDetail')
