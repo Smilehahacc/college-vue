@@ -49,7 +49,7 @@
       <div class='topic-content'
            @click='getTopicDetail(topic.topic_id)'>
         <!-- 主题图片 -->
-        <img :src="checkImg(topic.topic_img)?require('@/assets/img/'+topic.topic_img):require('@/assets/img/portrait.png')"
+        <img :src="checkImg(topic.topic_img)?require('@/assets/img/'+topic.topic_img):require('@/assets/img/blank.png')"
              class='topic-img'
              :style="{display:checkImg(topic.topic_img)?'':'none'}">
         <div class='content-text'>{{ topic.topic_content }}</div>

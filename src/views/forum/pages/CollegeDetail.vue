@@ -10,9 +10,9 @@
                class='college-img'>
           <a class='college-name'>{{ collegeInfor.college_name }}</a>
           <Button class='follow-button'
-                  :type="isFollow?'warning':'primary'"
+                  :type="isFollowCollege?'warning':'primary'"
                   :style="{display:isLogin?'':'none'}"
-                  @click='followCollege(collegeId)'>{{ checkFollow() }}</Button>
+                  @click='followCollege(collegeId)'>{{ checkFollowCollege() }}</Button>
           <a class='college-summary'>{{ collegeInfor.college_summary }}</a>
         </div>
         <!-- 头部右侧，下载app推荐 -->
@@ -101,7 +101,7 @@ export default {
       userId: '',
       userName: '',
       collegeId: '',
-      isFollow: true,
+      isFollowCollege: true,
       collegeInfor: [], // 校园信息
       sortTopic1: [], // 不同分类下校园主题列表
       sortTopic2: [],
@@ -150,8 +150,8 @@ export default {
       }
     },
     // 检查是否关注，修改按钮样式
-    checkFollow () {
-      if (this.isFollow) {
+    checkFollowCollege () {
+      if (this.isFollowCollege) {
         return '取消关注'
       } else {
         return '关注'
@@ -159,14 +159,14 @@ export default {
     },
     // 点击按钮后，关注或取消关注校园
     followCollege (userId) {
-      if (!this.isFollow) { // 关注
+      if (!this.isFollowCollege) { // 关注
         this.$axios.post('/api/newUserFollow', {
           collegeId: this.collegeId,
           userId: this.userId
         }).then(response => {
           if (response.data === 'SUCCESS') {
             this.$Message.success('关注成功！')
-            this.isFollow = true
+            this.isFollowCollege = true
           } else {
             this.$Message.error('关注失败！')
           }
@@ -181,7 +181,7 @@ export default {
         }).then(response => {
           if (response.data === 'SUCCESS') {
             this.$Message.success('取消关注成功！')
-            this.isFollow = false
+            this.isFollowCollege = false
           } else {
             this.$Message.error('取消关注失败！')
           }
@@ -286,21 +286,24 @@ export default {
         }
       })
     },
-    // 发送请求，更新所有页面信息
-    syncPage () {
-      // 判断是否已经关注
+    // 判断是否已经关注校园
+    checkFollowC () {
       if (this.isLogin) {
         this.$axios.post('/api/findRelationById1', {
           collegeId: this.collegeId,
           userId: this.userId
         }).then(response => {
           if (response.data === 'SUCCESS') {
-            this.isFollow = true
+            this.isFollowCollege = true
           } else {
-            this.isFollow = false
+            this.isFollowCollege = false
           }
         })
       }
+    },
+    // 发送请求，更新所有页面信息
+    syncPage () {
+      this.checkFollowC()
       this.getSortTopic()
       this.getCollegeInfor()
     }
@@ -399,7 +402,7 @@ export default {
   margin-top: 10px;
   width: 31%;
   height: auto;
-  min-height: 100px;
+  min-height: 200px;
   background: #ffffff;
 }
 .head-right a {

@@ -76,7 +76,7 @@
                 <p>{{ topic.topic_title }}</p>
               </Poptip>
               <div class='topic-content'
-                   @click='getTopicDetail(topic.topic_id)'>
+                   @click='getTopicDetail(topic.topic_id,topic.college_id)'>
 
                 <img :src="checkImg(topic.topic_img)?require('@/assets/img/'+topic.topic_img):require('@/assets/img/blank.png')"
                      class='topic-img'
@@ -190,7 +190,7 @@ export default {
       allTopic: [], // 所有的主题
       followTopic: [], // 关注的人的主题
       userInfor: [{
-        infor_portrait: 'portrait.png',
+        infor_portrait: 'blank.png',
         infor_name: '',
         infor_topic_num: '',
         infor_autograph: ''
@@ -337,8 +337,9 @@ export default {
       this.$router.push('/collegeDetail')
     },
      // 跳转页面，查看详情
-    getTopicDetail (topicId) {
+    getTopicDetail (topicId, collegeId) {
       this.$store.commit('setTopicId', topicId)
+      this.$store.commit('setCollegeId', collegeId)
       this.$router.push('/topicDetail')
     },
     // 点击关注更多校园
