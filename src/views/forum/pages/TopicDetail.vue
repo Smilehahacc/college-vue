@@ -91,6 +91,34 @@
             <div class='infor-bottom'>
               <a class='detail-topicdate'>{{ index+2 }}楼</a>
               <a class='detail-topicdate'>{{ formartDate(reply.reply_date) }}</a>
+              <a class='detail-topicdate' @click="replyClick(index,topic.topic_id)">回复</a>
+            </div>
+
+            <!-- 额外回复栏 -->
+            <div class='quick-reply'
+                 :style="{display:(replySelected === index)?'':'none'}">
+              <!-- 回复简略信息 -->
+              <div class='reply-show'
+                   v-for='(extra,index) in extraReplyList'
+                   :key='index'>
+                <!-- 主题图片 -->
+                <img :src="checkImg(extra.user_portrait)?require('@/assets/img/'+extra.user_portrait):require('@/assets/img/blank.png')"
+                     class='reply-user-portrait'>
+                <div class='reply-detail'>
+                  <a class='reply-user'>{{ extra.user_name }}</a>
+                  <a class='reply-date'>{{ formartDate(extra.reply_date) }}</a>
+                </div>
+                <a class='reply-content'>{{ extra.reply_content }}</a>
+              </div>
+              <!-- 输入栏和发送回复按钮 -->
+              <input v-model="quickReply"
+                     type="text"
+                     placeholder='写下你想说的吧～'>
+              <Button class='reply-button'
+                      type="primary"
+                      @click='replyExtraPublish(reply.reply_id)'>
+                发表
+              </Button>
             </div>
           </div>
           <Divider />
@@ -261,6 +289,45 @@ export default {
       }).catch(error => {
         console.log(error)
         this.$Message.error('请求失败！' + error.status + ',' + error.statusText)
+      })
+    },
+     replyExtraPublish () {
+      var t = new Date().getTime()
+      t = parseInt(t / 1000)
+      this.$axios.post('/api/newExtra', {
+        replyId: this.topicId,
+        userId: this.userId,
+        userName: this.userName,
+        extraContent: this.replyText,
+        extraDate: t
+      }).then(response => {
+        console.log('提交回复')
+        if (response.data === 'SUCCESS') {
+          this.$Message.success('回复成功！')
+          this.replySelected = -1
+        } else {
+          this.$Message.error('抱歉，回复失败！')
+        }
+      }).catch(error => {
+        console.log(error)
+        this.$Message.error('请求失败！' + error.status + ',' + error.statusText)
+      })
+    },
+     // 点击展开快捷回复栏
+    replyClick (index, topicId) {
+      if (this.replySelected === index) {
+        this.replySelected = -1
+      } else {
+        this.replySelected = index
+      }
+      // 获取用户回复信息
+      this.$axios.post('/api/findExtraByReplyId', {
+        replyId: topicId
+      }).then(data => {
+        console.log('获取额外回复信息')
+        if (data.data !== null) {
+          this.extraReplyList = data.data
+        }
       })
     },
     /**
@@ -607,7 +674,6 @@ export default {
   width: 90%;
   margin: 0 auto;
   font-size: 14px;
-
 }
 .reply-publish-button {
   float: left;
@@ -622,5 +688,65 @@ export default {
   height: auto;
   min-height: 100px;
   background-color: #ffffff;
+}
+
+/* 展开回复信息 */
+.reply-show {
+  width: 100%;
+  height: auto;
+  margin: 0 0 0px 0;
+  color: #515a6e;
+}
+/* 回复人的小头像 */
+.reply-user-portrait {
+  float: left;
+  width: 40px;
+  height: 40px;
+  border-radius: 20px;
+  border: solid #ffffff 1px;
+}
+
+.reply-show a {
+  text-decoration: none;
+  color: #515a6e;
+}
+
+.reply-detail {
+  float: left;
+  width: 80%;
+  height: 50px;
+}
+/* 回复昵称和时间 */
+.reply-user,
+.reply-date {
+  float: left;
+  width: 80%;
+  height: 25px;
+  margin-left: 10px;
+}
+/* 回复内容 */
+.reply-content {
+  float: left;
+  width: 100%;
+  margin: 0 10px 10px 0;
+  padding-right: 10px;
+}
+/* 快捷回复栏 */
+.quick-reply {
+  float: left;
+  width: 100%;
+  margin: 0 0 20px 0;
+}
+
+.quick-reply input {
+  float: left;
+  height: 30px;
+  width: 80%;
+  text-indent: 8px;
+}
+
+.reply-button {
+  float: left;
+  margin-left: 10px;
 }
 </style>
