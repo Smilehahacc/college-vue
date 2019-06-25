@@ -10,18 +10,18 @@
              title="用户信息">
         <div style='height:auto;margin-bottom:20px'>
           <div class='modal-detail'>
-            <img :src="isShowInforPanel?require('@/assets/img/'+replyList.infor_portrait):require('@/assets/img/blank.png')">
-            <a>{{ replyList.infor_name }}</a>
+            <img :src="isShowInforPanel?require('@/assets/img/'+userInfor.infor_portrait):require('@/assets/img/blank.png')">
+            <a>{{ userInfor.infor_name }}</a>
             <Button class='follow-button'
                     :type="isFollow?'warning':'primary'"
                     :style="{display:isLogin?'':'none'}"
-                    @click='followUser(replyList.user_id)'>{{ checkFollow() }}</Button>
+                    @click='followUser(userInfor.user_id)'>{{ checkFollow() }}</Button>
           </div>
           <div style='height:auto;width:100%;margin-bottom:40px'>
-            <p>粉丝 xxx</p>
-            <p>关注 xxx</p>
-            <p>主题数 {{ replyList.infor_topic_num }}</p>
-            <p>个性签名: {{ replyList.infor_autograph }}</p>
+            <p>粉丝 {{ fansNum }}</p>
+            <p>关注 {{ followNum }}</p>
+            <p>主题数 {{ userInfor.infor_topic_num }}</p>
+            <p>个性签名: {{ userInfor.infor_autograph }}</p>
           </div>
 
         </div>
@@ -33,17 +33,20 @@
         <img :src="checkImg(collegeInfor.college_portrait)?require('@/assets/img/'+collegeInfor.college_portrait):require('@/assets/img/blank.png')"
              class='college-img'>
         <a class='college-name'>{{ collegeInfor.college_name }}</a>
-        <Button class='follow-button'
+        <Button class='follow-button-college'
                 :type="isFollowCollege?'warning':'primary'"
                 :style="{display:isLogin?'':'none'}"
                 @click='followCollege(collegeId)'>{{ checkFollowCollege() }}</Button>
         <Button class='signin-button'
+                type="primary"
+                ghost
                 :style="{display:isLogin?'':'none'}"
                 @click="signin">签到</Button>
       </div>
 
       <!-- 主题主界面左边 -->
-      <div class='left'>
+      <div class='left'
+           style="padding-right: 20px">
         <!-- 显示主题信息 -->
         <div class='topic-infor'>
           <!-- 主题信息，包括用户名头像发送时间 -->
@@ -73,7 +76,7 @@
         <div class='topic-reply'
              v-for='(reply,index) in replyList'
              :key='index'>
-          <!-- 主题信息，包括用户名头像发送时间 -->
+          <!-- 回复信息，包括用户名头像发送时间 -->
           <div class='infor-left'>
             <img :src="checkImg(reply.user_portrait)?require('@/assets/img/'+reply.user_portrait):require('@/assets/img/blank.png')"
                  @click='showUserInfor(reply.user_id,reply.user_name)'
@@ -91,27 +94,29 @@
             <div class='infor-bottom'>
               <a class='detail-topicdate'>{{ index+2 }}楼</a>
               <a class='detail-topicdate'>{{ formartDate(reply.reply_date) }}</a>
-              <a class='detail-topicdate' @click="replyClick(index,topic.topic_id)">回复</a>
+              <a class='detail-topicdate'
+                 @click="replyClick(index,reply.reply_id)">回复</a>
             </div>
 
-            <!-- 额外回复栏 -->
+            <!-- 额外回复栏，显示额外回顾信息 -->
             <div class='quick-reply'
                  :style="{display:(replySelected === index)?'':'none'}">
-              <!-- 回复简略信息 -->
+              <!-- 拉去额外回复列表 -->
               <div class='reply-show'
-                   v-for='(extra,index) in extraReplyList'
-                   :key='index'>
-                <!-- 主题图片 -->
+                   v-for='(extra,indexExtra) in extraReplyList'
+                   :key='indexExtra'>
+                <!-- 额外回复信息，用户头像 名字 回复时间 额外回复内容 -->
                 <img :src="checkImg(extra.user_portrait)?require('@/assets/img/'+extra.user_portrait):require('@/assets/img/blank.png')"
-                     class='reply-user-portrait'>
+                     class='reply-user-portrait'
+                     @click='showUserInfor(extra.user_id,extra.user_name)'>
                 <div class='reply-detail'>
                   <a class='reply-user'>{{ extra.user_name }}</a>
-                  <a class='reply-date'>{{ formartDate(extra.reply_date) }}</a>
+                  <a class='reply-date'>{{ formartDate(extra.extra_date) }}</a>
                 </div>
-                <a class='reply-content'>{{ extra.reply_content }}</a>
+                <a class='reply-content'>{{ extra.extra_content }}</a>
               </div>
-              <!-- 输入栏和发送回复按钮 -->
-              <input v-model="quickReply"
+              <!-- 输入栏和发送额外回复按钮 -->
+              <input v-model="extraReplyText"
                      type="text"
                      placeholder='写下你想说的吧～'>
               <Button class='reply-button'
@@ -120,6 +125,7 @@
                 发表
               </Button>
             </div>
+
           </div>
           <Divider />
         </div>
@@ -129,13 +135,36 @@
           <div class='reply-publish-title'>
             <a>发表回复</a>
           </div>
-          <Input class='reply-input'
-                 type="textarea"
-                 :rows="4"
-                 v-model='replyText'
-                 :placeholder='replyTips' />
+
+          <!-- 回复内容输入区域 -->
+          <div class="content-area">
+            <Upload class='add-src-button'
+                    :max-size='2048'
+                    :show-upload-list="false"
+                    action="//jsonplaceholder.typicode.com/posts/"
+                    accept='image/*'
+                    show-upload-list:false
+                    :on-progress='uploadSuccess'>
+              <Button icon="ios-cloud-upload-outline">添加图片</Button>
+            </Upload>
+            <Button size="small"
+                  icon="md-trash"
+                  type="error"
+                  ghost
+                  shape="circle"
+                  @click="deleteSrc()"
+                  style="float: left;margin: 4px 0 0 4px"></Button>
+            <textarea class='content-input'
+                      cols="1"
+                      rows="4"
+                      v-model='replyText'
+                      :placeholder='replyTips' />
+            <img :src="checkImg(replyImgName)?require('@/assets/img/'+replyImgName):require('@/assets/img/blank.png')"
+                class='content-img'
+               :style="{display:checkImg(replyImgName)?'':'none'}">
+          </div>
           <Button class='reply-publish-button'
-                  @click="replyPublish"
+                  @click="replyPublish()"
                   type="primary"
                   :style="{disabled:isLogin?'':'disabled'}">发表</Button>
         </div>
@@ -167,13 +196,16 @@ export default {
       collegeId: '',
       topicId: '',
       replySelected: -1,
-      quickReply: '',
       isShowInforPanel: false,
       isFollow: false,
       isFollowCollege: true,
       replyText: '',
+      replyImgName: '',
       extraReplyText: '',
+      fansNum: '',
+      followNum: '',
       replyTips: '写下你的想法吧～',
+      userInfor: [], // 暂存用户信息
       collegeInfor: [], // 校园信息
       topicInfor: [], // 主题信息
       replyList: [], // 回复列表
@@ -251,6 +283,18 @@ export default {
       }).then(data => {
         this.userInfor = data.data
       })
+      // 获取粉丝数量
+      this.$axios.post('/api/findFansByUserId', {
+        userId: userId
+      }).then(data => {
+        this.fansNum = data.data === null ? 0 : data.data.length
+      })
+      // // 获取关注数量
+      this.$axios.post('/api/findUserByFansId', {
+        fansId: userId
+      }).then(data => {
+        this.followNum = data.data === null ? 0 : data.data.length
+      })
       // 判断是否已经关注
       if (this.isLogin) {
         this.$axios.post('/api/findRelationById', {
@@ -267,54 +311,113 @@ export default {
       // 显示对话框
       this.isShowInforPanel = true
     },
+    // 点击按钮后，关注或取消关注
+    followUser (userId) {
+      if (!this.isFollow) { // 关注
+        this.$axios.post('/api/newFans', {
+          userId: userId,
+          fansId: this.userId
+        }).then(response => {
+          if (response.data === 'SUCCESS') {
+            this.$Message.success('关注成功！')
+            this.isFollow = true
+          } else {
+            this.$Message.error('关注失败！')
+          }
+        }).catch(error => {
+          console.log(error)
+          this.$Message.error('请求失败！' + error.status + ',' + error.statusText)
+        })
+      } else { // 取消关注
+        this.$axios.post('/api/deleteFansById', {
+          userId: userId,
+          fansId: this.userId
+        }).then(response => {
+          if (response.data === 'SUCCESS') {
+            this.$Message.success('取消关注成功！')
+            this.isFollow = false
+          } else {
+            this.$Message.error('取消关注失败！')
+          }
+        }).catch(error => {
+          console.log(error)
+          this.$Message.error('请求失败！' + error.status + ',' + error.statusText)
+        })
+      }
+    },
+    // 回复图片上传成功
+    uploadSuccess (event, file, fileList) {
+      this.replyImgName = file.name
+    },
+    // 删除上传的图片
+    deleteSrc () {
+      this.replyImgName = ''
+    },
     // 发送回复
     replyPublish () {
-      var t = new Date().getTime()
-      t = parseInt(t / 1000)
-      this.$axios.post('/api/newReply', {
-        topicId: this.topicId,
-        userId: this.userId,
-        userName: this.userName,
-        replyContent: this.replyText,
-        replyDate: t,
-        replyImage: ''
-      }).then(response => {
-        console.log('提交回复')
-        if (response.data === 'SUCCESS') {
-          this.$Message.success('回复成功！')
-          this.replySelected = -1
-        } else {
-          this.$Message.error('抱歉，回复失败！')
-        }
-      }).catch(error => {
-        console.log(error)
-        this.$Message.error('请求失败！' + error.status + ',' + error.statusText)
-      })
+      if (this.isLogin && this.replyText !== '') {
+        var t = new Date().getTime()
+        t = parseInt(t / 1000)
+        this.$axios.post('/api/newReply', {
+          topicId: this.topicId,
+          userId: this.userId,
+          userName: this.userName,
+          replyContent: this.replyText,
+          replyDate: t,
+          replyImage: this.replyImgName
+        }).then(response => {
+          console.log('提交回复')
+          if (response.data === 'SUCCESS') {
+            this.$Message.success('回复成功！')
+            this.replyText = ''
+            this.replyImgName = ''
+            // 重新获取回复列表
+            this.getReplyList()
+          } else {
+            this.$Message.error('抱歉，回复失败！')
+          }
+        }).catch(error => {
+          console.log(error)
+          this.$Message.error('请求失败！' + error.status + ',' + error.statusText)
+        })
+      } else if (this.replyText === '') {
+        this.$Message.warning('回复内容不能为空哦～')
+      } else {
+        this.$Message.warning('登录后才可以发表回复哦～')
+      }
     },
-     replyExtraPublish () {
-      var t = new Date().getTime()
-      t = parseInt(t / 1000)
-      this.$axios.post('/api/newExtra', {
-        replyId: this.topicId,
-        userId: this.userId,
-        userName: this.userName,
-        extraContent: this.replyText,
-        extraDate: t
-      }).then(response => {
-        console.log('提交回复')
-        if (response.data === 'SUCCESS') {
-          this.$Message.success('回复成功！')
-          this.replySelected = -1
-        } else {
-          this.$Message.error('抱歉，回复失败！')
-        }
-      }).catch(error => {
-        console.log(error)
-        this.$Message.error('请求失败！' + error.status + ',' + error.statusText)
-      })
+    replyExtraPublish (replyId) {
+      if (this.isLogin && this.extraReplyText !== '') {
+        var t = new Date().getTime()
+        t = parseInt(t / 1000)
+        this.$axios.post('/api/newExtra', {
+          replyId: replyId,
+          userId: this.userId,
+          userName: this.userName,
+          extraContent: this.extraReplyText,
+          extraDate: t
+        }).then(response => {
+          console.log('提交回复')
+          if (response.data === 'SUCCESS') {
+            this.$Message.success('回复成功！')
+            this.extraReplyText = ''
+            this.replySelected = -1
+          } else {
+            this.$Message.error('抱歉，回复失败！')
+          }
+        }).catch(error => {
+          console.log(error)
+          this.$Message.error('请求失败！' + error.status + ',' + error.statusText)
+        })
+      } else if (this.extraReplyText === '') {
+        this.$Message.warning('回复内容不能为空哦～')
+      } else {
+        this.$Message.warning('登录后才可以发表回复哦～')
+      }
     },
-     // 点击展开快捷回复栏
-    replyClick (index, topicId) {
+    // 点击展开快捷回复栏
+    replyClick (index, replyId) {
+      // 修改界面显示效果
       if (this.replySelected === index) {
         this.replySelected = -1
       } else {
@@ -322,7 +425,7 @@ export default {
       }
       // 获取用户回复信息
       this.$axios.post('/api/findExtraByReplyId', {
-        replyId: topicId
+        replyId: replyId
       }).then(data => {
         console.log('获取额外回复信息')
         if (data.data !== null) {
@@ -519,7 +622,7 @@ export default {
   color: #17233d;
 }
 /* 校园关注按钮 */
-.follow-button {
+.follow-button-college {
   float: left;
   font-size: 10px;
   margin: 32px 0 0 20px;
@@ -527,6 +630,7 @@ export default {
 /* 签到按钮 */
 .signin-button {
   float: right;
+  margin: 32px 20px 0 0;
 }
 /* 左边界面 */
 .left {
@@ -604,7 +708,7 @@ export default {
   width: 100%;
   height: auto;
   min-height: 80px;
-  padding-right: 20px;
+  padding-right: 0px;
 }
 
 .topic-title {
@@ -655,12 +759,14 @@ export default {
 .reply-publish {
   width: 100%;
   height: auto;
-  margin-left: 20px;
+  margin: 60px 0 0 20px;
 }
 .reply-publish-title {
+  position: relative;
   float: left;
+  height: 30px;
   width: 100%;
-  margin: 10px 0 20px 0;
+  margin: -40px 0 0px 0;
   text-align: left;
 }
 
@@ -674,6 +780,44 @@ export default {
   width: 90%;
   margin: 0 auto;
   font-size: 14px;
+}
+/* 主题内容输入区域 */
+.content-area {
+  position: relative;
+  margin-top: 20px;
+  height: auto;
+  min-height: 250px;
+  width: 92%;
+  border: #dcdee2 1px solid;
+  padding-left: 10px;
+}
+/* 回复内容输入框 */
+.content-input {
+  position: relative;
+  width: 100%;
+  height: auto;
+  min-height: 100px;
+  border-top-width: 0px;
+  border-left-width: 0px;
+  border-bottom-width: 0px;
+  border-right-width: 0px;
+  font-size: 14px;
+  color: #515a6e;
+  outline: none;
+  overflow: visible;
+}
+/* 添加回复图片按钮 */
+.add-src-button {
+  position: relative;
+  float: left;
+  margin: 0 0 10px -10px;
+}
+/* 回复图片显示 */
+.content-img {
+  float: left;
+  height: 80px;
+  width: auto;
+  margin: 5px 0 10px 0;
 }
 .reply-publish-button {
   float: left;
@@ -741,7 +885,7 @@ export default {
 .quick-reply input {
   float: left;
   height: 30px;
-  width: 80%;
+  width: 85%;
   text-indent: 8px;
 }
 

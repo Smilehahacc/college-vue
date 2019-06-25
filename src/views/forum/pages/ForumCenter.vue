@@ -18,8 +18,8 @@
                     @click='followUser(userInfor.user_id)'>{{ checkFollow() }}</Button>
           </div>
           <div style='height:auto;width:100%;margin-bottom:40px'>
-            <p>粉丝 xxx</p>
-            <p>关注 xxx</p>
+            <p>粉丝 {{ fansNum }}</p>
+            <p>关注 {{ followNum }}</p>
             <p>主题数 {{ userInfor.infor_topic_num }}</p>
             <p>个性签名: {{ userInfor.infor_autograph }}</p>
           </div>
@@ -185,6 +185,8 @@ export default {
       replySelected: -1,
       quickReply: '',
       isShowInforPanel: false,
+      fansNum: '',
+      followNum: '',
       isFollow: false,
       collegeUser: [],
       allTopic: [], // 所有的主题
@@ -250,6 +252,18 @@ export default {
         name: userName
       }).then(data => {
         this.userInfor = data.data
+      })
+      // 获取粉丝数量
+      this.$axios.post('/api/findFansByUserId', {
+        userId: userId
+      }).then(data => {
+        this.fansNum = data.data === null ? 0 : data.data.length
+      })
+      // // 获取关注数量
+      this.$axios.post('/api/findUserByFansId', {
+        fansId: userId
+      }).then(data => {
+        this.followNum = data.data === null ? 0 : data.data.length
       })
       // 判断是否已经关注
       if (this.isLogin) {
@@ -336,15 +350,15 @@ export default {
       this.$store.commit('setCollegeId', collegeId)
       this.$router.push('/collegeDetail')
     },
+    // 点击关注更多校园
+    collegeMore () {
+      this.$Message.success('跳转到更多校园页面')
+    },
      // 跳转页面，查看详情
     getTopicDetail (topicId, collegeId) {
       this.$store.commit('setTopicId', topicId)
       this.$store.commit('setCollegeId', collegeId)
       this.$router.push('/topicDetail')
-    },
-    // 点击关注更多校园
-    collegeMore () {
-      this.$Message.success('跳转到更多校园页面')
     },
     // 获取cookie
     getCookie (cname) {
@@ -454,6 +468,7 @@ export default {
   width: 68%;
   height: auto;
   padding-left: 20px;
+  padding-right: 20px;
   background: #ffffff;
 }
 

@@ -3,7 +3,8 @@
     <div id='inputMain'>
       <div class='login-main'
            v-bind:style='{display: displayLogin}'>
-        <p class='title'>{{ appTitle }}</p>
+        <!-- <p class='title'>{{ appTitle }}</p> -->
+        <img :src="require('@/assets/img/zh_logo.png')" class="title-logo">
         <p class='tilte-detail'>{{ loginTitle }}</p>
         <div id='inputDetail'>
           <input type="text"
@@ -26,7 +27,8 @@
 
       <div class='register-main'
            v-bind:style='{display: displayRegister}'>
-        <p class='title'>{{ appTitle }}</p>
+        <!-- <p class='title'>{{ appTitle }}</p> -->
+        <img :src="require('@/assets/img/zh_logo.png')" class="title-logo">
         <p class='tilte-detail'>{{ registerTitle }}</p>
         <div id='inputDetail'>
           <input type="text"
@@ -74,8 +76,10 @@ export default {
   data () {
     return {
       appTitle: '校园',
-      loginTitle: '登录帐号，享受校园之旅',
-      registerTitle: '注册帐号，开启校园之旅',
+      // loginTitle: '登录帐号，享受校园之旅',
+      // registerTitle: '注册帐号，开启校园之旅',
+      loginTitle: '登录知乎，发现更多可信赖的解答',
+      registerTitle: '注册知乎，发现更多可信赖的解答',
       smsLogin: '手机号验证登录',
       forget: '忘记密码？',
       voice: '接收语音验证码',
@@ -247,9 +251,10 @@ export default {
   margin: 0;
   padding: 0;
   height: 100%;
-  /* width: 100%; */
-  width: 1535px;
-  background-image: url("../../assets/img/login_back.png");
+  width: 100%;
+  /* width: 1535px; */
+  /* background-image: url("../../assets/img/login_back.png"); */
+  background-image: url("../../assets/img/zh.png");
   background-size: 100% 100%;
 }
 
@@ -289,10 +294,20 @@ export default {
   font-size: 56px;
 }
 
+.title-logo {
+  height: 106px;
+  width: auto;
+  padding: 30px 0 10px 0;
+  color: #2d8cf0;
+  font-weight: bold;
+  font-size: 56px;
+}
+
 .tilte-detail {
   font-size: 26px;
   font-weight: bold;
   color: #2d8cf0;
+  letter-spacing: -4px;
 }
 
 .input-style {

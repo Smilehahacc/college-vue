@@ -2,6 +2,9 @@
   <div id='app'>
     <div id='college-detail'>
 
+      <!-- 右侧浮动按钮 -->
+      <float-menu />
+
       <!-- 页面头部，左边轮播图用来展示一些校园活动，右边是欢迎图片 -->
       <div class='head'>
         <div class='head-left'>
@@ -85,13 +88,15 @@
 <script>
 import UserTopic from '../components/UserTopic'
 import CommonlyMenu from '../components/CommonlyMenu'
+import FloatMenu from '../components/FloatMenu'
 // 固定写法，参数的赋值
 export default {
   name: 'forumCenter',
   inject: ['reload'],
   components: {
     'user-topic': UserTopic,
-    'commonly-menu': CommonlyMenu
+    'commonly-menu': CommonlyMenu,
+    'float-menu': FloatMenu
   },
   data () {
     return {
@@ -393,6 +398,7 @@ export default {
   min-height: 600px;
   /* height: 5000px; */
   padding-left: 20px;
+  padding-right: 20px;
   background: #ffffff;
 }
 /* 右边界面 */

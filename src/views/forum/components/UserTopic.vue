@@ -16,8 +16,8 @@
                   @click='followUser(userInfor.user_id)'>{{ checkFollow() }}</Button>
         </div>
         <div style='height:auto;width:100%;margin-bottom:40px'>
-          <p>粉丝 xxx</p>
-          <p>关注 xxx</p>
+          <p>粉丝 {{ fansNum }}</p>
+          <p>关注 {{ followNum }}</p>
           <p>主题数 {{ userInfor.infor_topic_num }}</p>
           <p>个性签名: {{ userInfor.infor_autograph }}</p>
         </div>
@@ -32,7 +32,7 @@
          :style="{display:isShow?'':'none'}">
       <!-- 关注人的主题信息，包括用户名头像发送时间 -->
       <div class='follow-infor'>
-        <img :src="require('@/assets/img/'+topic.user_portrait)"
+        <img :src="checkImg(topic.user_portrait)?require('@/assets/img/'+topic.user_portrait):require('@/assets/img/blank.png')"
              @click='showUserInfor(topic.user_id,topic.user_name)'>
         <!-- 名字和发送时间 -->
         <div class='follow-infor-detail'>
@@ -83,11 +83,12 @@
            :style="{display:(replySelected === index)?'':'none'}">
         <!-- 回复简略信息 -->
         <div class='reply-show'
-              v-for='(reply,index) in replyList'
-              :key='index'>
-           <!-- 主题图片 -->
+             v-for='(reply,index) in replyList'
+             :key='index'>
+          <!-- 用户头像 -->
           <img :src="checkImg(reply.user_portrait)?require('@/assets/img/'+reply.user_portrait):require('@/assets/img/blank.png')"
-              class='reply-user-portrait'>
+               class='reply-user-portrait'
+               @click='showUserInfor(reply.user_id,reply.user_name)'>
           <div class='reply-detail'>
             <a class='reply-user'>{{ reply.user_name }}</a>
             <a class='reply-date'>{{ formartDate(reply.reply_date) }}</a>
@@ -134,6 +135,8 @@ export default {
       replySelected: -1,
       quickReply: '',
       isShowInforPanel: false,
+      fansNum: '',
+      followNum: '',
       isFollow: false,
       userInfor: [], // 用户详细信息
       replyList: [] // 用户回复信息
@@ -211,6 +214,18 @@ export default {
         name: userName
       }).then(data => {
         this.userInfor = data.data
+      })
+      // 获取粉丝数量
+      this.$axios.post('/api/findFansByUserId', {
+        userId: userId
+      }).then(data => {
+        this.fansNum = data.data === null ? 0 : data.data.length
+      })
+      // // 获取关注数量
+      this.$axios.post('/api/findUserByFansId', {
+        fansId: userId
+      }).then(data => {
+        this.followNum = data.data === null ? 0 : data.data.length
       })
       // 判断是否已经关注
       if (this.isLogin) {
@@ -327,27 +342,32 @@ export default {
     },
     // 发送快捷回复
     replyPublish (topicId) {
-      var t = new Date().getTime()
-      t = parseInt(t / 1000)
-      this.$axios.post('/api/newReply', {
-        topicId: topicId,
-        userId: this.userId,
-        userName: this.userName,
-        replyContent: this.quickReply,
-        replyDate: t,
-        replyImage: ''
-      }).then(response => {
-        console.log('提交快捷回复')
-        if (response.data === 'SUCCESS') {
-          this.$Message.success('回复成功！')
-          this.replySelected = -1
-        } else {
-          this.$Message.error('抱歉，回复失败！')
-        }
-      }).catch(error => {
-        console.log(error)
-        this.$Message.error('请求失败！' + error.status + ',' + error.statusText)
-      })
+      if (this.replyContent !== '') {
+        var t = new Date().getTime()
+        t = parseInt(t / 1000)
+        this.$axios.post('/api/newReply', {
+          topicId: topicId,
+          userId: this.userId,
+          userName: this.userName,
+          replyContent: this.quickReply,
+          replyDate: t,
+          replyImage: ''
+        }).then(response => {
+          console.log('提交快捷回复')
+          if (response.data === 'SUCCESS') {
+            this.$Message.success('回复成功！')
+            this.quickReply = ''
+            this.replySelected = -1
+          } else {
+            this.$Message.error('抱歉，回复失败！')
+          }
+        }).catch(error => {
+          console.log(error)
+          this.$Message.error('请求失败！' + error.status + ',' + error.statusText)
+        })
+      } else {
+        this.$Message.warning('请输入回复内容')
+      }
     },
     // 获取cookie
     getCookie (cname) {
@@ -501,7 +521,7 @@ export default {
   border: solid #ffffff 1px;
 }
 
-.reply-show a{
+.reply-show a {
   text-decoration: none;
   color: #515a6e;
 }
@@ -512,7 +532,8 @@ export default {
   height: 50px;
 }
 /* 回复昵称和时间 */
-.reply-user,.reply-date {
+.reply-user,
+.reply-date {
   float: left;
   width: 80%;
   height: 25px;
@@ -535,7 +556,7 @@ export default {
 .quick-reply input {
   float: left;
   height: 30px;
-  width: 80%;
+  width: 87%;
   text-indent: 8px;
 }
 
