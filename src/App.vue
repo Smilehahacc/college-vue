@@ -22,6 +22,7 @@ export default {
 
   },
   methods: {
+    // 页面刷新方法
     reload () {
       this.isRouterAlive = false
       this.$nextTick(function () {
