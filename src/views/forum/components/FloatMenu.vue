@@ -133,7 +133,7 @@
 <script>
 // 固定写法，参数的赋值
 export default {
-  name: 'forumCenter',
+  name: 'floatMenu',
   inject: ['reload'],
   props: {
     // isLogin: {
