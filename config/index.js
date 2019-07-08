@@ -13,7 +13,8 @@ module.exports = {
     // 配置反向代理，解决跨域请求
     proxyTable: {
       '/api': {
-        target: 'http://localhost:10001',
+        // 目的地址，填写自己后端项目的地址，在本地运行一般写个http://localhost:8080就可以了，我这用的是服务器地址
+        target: 'http://39.105.54.137:8080/zhihuServer',
         changeOrigin: true,
         pathRewrite: {
           '^/api': '' // 这里相当于用/api进行替换，如引用/api就变成http://localhost:10001（后面也可以加特定地址）
