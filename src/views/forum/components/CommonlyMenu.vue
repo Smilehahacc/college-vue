@@ -67,7 +67,7 @@ export default {
       } else if (name === '2') {
         this.$Message.success('我的粉丝')
       } else if (name === '3') {
-        this.$Message.success('主题收藏')
+        this.$router.push('/collectionDetail')
       } else if (name === '4') {
         this.$Message.success('评论留言')
       } else if (name === '5') {

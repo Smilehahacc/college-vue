@@ -43,5 +43,6 @@ export default {
   text-align: center;
   color: #515a6e;
   font-size: 14px;
+  margin-top: -50px;
 }
 </style>

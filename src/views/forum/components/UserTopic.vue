@@ -338,7 +338,17 @@ export default {
     },
     // 点击分享按钮
     collectionClick (index, topicId) {
-      this.$Message.success('收藏成功，主题id为：' + topicId)
+      this.$axios.post('/api/newCollection', {
+        userId: this.userId,
+        collectionId: topicId
+      }).then(data => {
+        // 更新列表
+        if (data.data === 'SUCCESS') {
+          this.$Message.success('收藏成功！')
+        } else {
+          this.$Message.error('收藏失败！')
+        }
+      })
     },
     // 发送快捷回复
     replyPublish (topicId) {

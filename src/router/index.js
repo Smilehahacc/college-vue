@@ -5,6 +5,7 @@ import Index from '@/views/forum/index'
 import ForumCenter from '@/views/forum/pages/ForumCenter'
 import CollegeDetail from '@/views/forum/pages/CollegeDetail'
 import TopicDetail from '@/views/forum/pages/TopicDetail'
+import CollectionDetail from '@/views/forum/pages/CollectionDetail'
 
 Vue.use(Router)
 
@@ -41,6 +42,9 @@ export default new Router({
         }, {
           path: '/topicDetail',
           component: TopicDetail
+        }, {
+          path: '/collectionDetail',
+          component: CollectionDetail
         }]
     }
   ]
